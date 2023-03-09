@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from .light_curves import LightCurve
 from scipy.stats import chi2
 
@@ -23,32 +24,32 @@ def make_pds(signal, time_step, pad_size):
     return freqs[mask], ps[mask]
 
 def group_log_bins(freqs: np.array, ps: np.array, N_bins: int = 30, step: float = None, log_scale: np.array = None):
-        '''
-        Group bins in log scale
-        Args:
-            freqs (np.array): input frquencies
-            ps (np.array): input power spectrum
-            N_bins (int, optional): number of bins. Defaults to 30.
-        '''
-        time=[]
-        time_err=[]
-        flux=[]
-        flux_err=[]
-        log_x = np.log10(freqs)
+    '''
+    Group bins in log scale
+    Args:
+        freqs (np.array): input frquencies
+        ps (np.array): input power spectrum
+        N_bins (int, optional): number of bins. Defaults to 30.
+    '''
+    time=[]
+    time_err=[]
+    flux=[]
+    flux_err=[]
+    log_x = np.log10(freqs)
 
-        if step is None:
-            step = (log_x[-1] - log_x[0])/(2*N_bins)
-        if log_scale is None:
-            log_scale = np.linspace(log_x[0]+step,log_x[-1]-step,N_bins)
+    if step is None:
+        step = (log_x[-1] - log_x[0])/(2*N_bins)
+    if log_scale is None:
+        log_scale = np.linspace(log_x[0]+step,log_x[-1]-step,N_bins)
 
-        for i in range(0,N_bins):
-            mask1=tuple([np.logical_and(log_x>=log_scale[i]-step,log_x<log_scale[i]+step)])
-            time.append(np.mean(freqs[mask1]) if len(ps[mask1])!=0 else 10**log_scale[i])
-            time_err.append((10**(log_scale[i]+step)-10**(log_scale[i]) + 10**(log_scale[i])-10**(log_scale[i]-step))/2)
-            flux.append(np.mean(ps[mask1]) if len(ps[mask1])!=0 else 0)
-            flux_err.append(chi2.ppf(0.67,2*len(ps[mask1]))/len(ps[mask1]) if len(ps[mask1])!=0 else 1)
-        
-        return np.array(time), np.array(time_err), np.array(flux), np.array(flux_err)
+    for i in range(0,N_bins):
+        mask1=tuple([np.logical_and(log_x>=log_scale[i]-step,log_x<log_scale[i]+step)])
+        time.append(np.mean(freqs[mask1]) if len(ps[mask1])!=0 else 10**log_scale[i])
+        time_err.append((10**(log_scale[i]+step)-10**(log_scale[i]) + 10**(log_scale[i])-10**(log_scale[i]-step))/2)
+        flux.append(np.mean(ps[mask1]) if len(ps[mask1])!=0 else 0)
+        flux_err.append(chi2.ppf(0.67,2*len(ps[mask1]))/len(ps[mask1]) if len(ps[mask1])!=0 else 1)
+    
+    return np.array(time), np.array(time_err), np.array(flux), np.array(flux_err)
 
 class FurieLightCurve():
     def __init__(self, light_curve: LightCurve, 
@@ -83,7 +84,7 @@ class FurieLightCurve():
         self.freqs, self.ps =  make_pds(signal+mean_bkg,self.light_curve.original_resolution, pad_size)
         self.freqs_err, self.ps_err = np.full(self.freqs.shape[0], 0), np.sqrt(self.ps)
 
-    def plot(self, kind: str = 'scatter', logx: bool = True, logy: bool = True, N_bins: int = 30, **kwargs):
+    def plot(self, kind: str = 'scatter', logx: bool = True, logy: bool = True, N_bins: int = 30, ax: mpl.axes.Axes = None, **kwargs):
         '''
         Plot PDS
         Args:
@@ -98,21 +99,41 @@ class FurieLightCurve():
         else:
             x,x_err,y,y_err = group_log_bins(self.freqs, self.ps, N_bins)
 
-        if kind == 'plot':
-            plt.plot(x, y, **kwargs)
-        elif kind == 'errorbar':
-            plt.errorbar(x, y, xerr=x_err, yerr=y_err, fmt = 'o', **kwargs)
-        elif kind == 'scatter':
-            plt.scatter(x, y, **kwargs)
-        elif kind == 'step':
-            plt.step(x, y, **kwargs)
+        if ax is None:
+            if kind == 'plot':
+                plt.plot(x, y, **kwargs)
+            elif kind == 'errorbar':
+                plt.errorbar(x, y, xerr=x_err, yerr=y_err, fmt = 'o', **kwargs)
+            elif kind == 'scatter':
+                plt.scatter(x, y, **kwargs)
+            elif kind == 'step':
+                plt.step(x, y, **kwargs)
+            else:
+                raise NotImplementedError(f'Plotting method {kind} not supported')
+            
+            if logx:
+                plt.xscale('log')
+            if logy:
+                plt.yscale('log')
         else:
-            raise NotImplementedError(f'Plotting method {kind} not supported')
+            if kind == 'plot':
+                ax.plot(x, y, **kwargs)
+            elif kind == 'errorbar':
+                ax.errorbar(x, y, xerr=x_err, yerr=y_err, fmt = 'o', **kwargs)
+            elif kind == 'scatter':
+                ax.scatter(x, y, **kwargs)
+            elif kind == 'step':
+                ax.step(x, y, **kwargs)
+            else:
+                raise NotImplementedError(f'Plotting method {kind} not supported')
+            
+            if logx:
+                ax.set_xscale('log')
+            if logy:
+                ax.set_yscale('log')
 
-        if logx:
-            plt.xscale('log')
-        if logy:
-            plt.yscale('log')
+
+        
 
 
     
