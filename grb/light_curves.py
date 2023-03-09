@@ -5,6 +5,7 @@ import numpy as np
 from .config import ACS_DATA_PATH, LIGHT_CURVE_SAVE, GBM_DETECTOR_CODES, logging
 from astropy.io import fits
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from .time import get_ijd_from_utc, get_ijd_from_Fermi_seconds
 import pickle
 
@@ -41,7 +42,7 @@ class LightCurve():
     def __eq__(self, other: object):
         return isinstance(other, LightCurve) and self.__class__ == other.__class__ and self.event_time == other.event_time and self.duration == other.duration and self.original_resolution == other.original_resolution
 
-    def plot(self,kind: str = 'plot',logx: bool = None,logy: bool = None, **kwargs):
+    def plot(self,kind: str = 'plot',logx: bool = None,logy: bool = None, ax: mpl.axes.Axes = None, **kwargs):
         '''
         Plot the light curve
         Args:
@@ -50,21 +51,38 @@ class LightCurve():
             logy (bool, optional): log y axis
             kwargs (dict, optional): keyword arguments for plotting used by matplotlib.pyplot.plot
         '''
-        if kind == 'plot':
-            plt.plot(self.times, self.signal, **kwargs)
-        elif kind == 'errorbar':
-            plt.errorbar(self.times, self.signal, xerr=self.times_err, yerr=self.signal_err, fmt = 'o', **kwargs)
-        elif kind == 'scatter':
-            plt.scatter(self.times, self.signal, **kwargs)
-        elif kind == 'step':
-            plt.step(self.times, self.signal, **kwargs)
-        else:
-            raise NotImplementedError(f'Plotting method {kind} not supported')
+        if ax is None:
+            if kind == 'plot':
+                plt.plot(self.times, self.signal, **kwargs)
+            elif kind == 'errorbar':
+                plt.errorbar(self.times, self.signal, xerr=self.times_err, yerr=self.signal_err, fmt = 'o', **kwargs)
+            elif kind == 'scatter':
+                plt.scatter(self.times, self.signal, **kwargs)
+            elif kind == 'step':
+                plt.step(self.times, self.signal, **kwargs)
+            else:
+                raise NotImplementedError(f'Plotting method {kind} not supported')
 
-        if logx:
-            plt.xscale('log')
-        if logy:
-            plt.yscale('log')
+            if logx:
+                plt.xscale('log')
+            if logy:
+                plt.yscale('log')
+        else:
+            if kind == 'plot':
+                ax.plot(self.times, self.signal, **kwargs)
+            elif kind == 'errorbar':
+                ax.errorbar(self.times, self.signal, xerr=self.times_err, yerr=self.signal_err, fmt = 'o', **kwargs)
+            elif kind == 'scatter':
+                ax.scatter(self.times, self.signal, **kwargs)
+            elif kind == 'step':
+                ax.step(self.times, self.signal, **kwargs)
+            else:
+                raise NotImplementedError(f'Plotting method {kind} not supported')
+
+            if logx:
+                ax.set_xscale('log')
+            if logy:
+                ax.set_yscale('log')
 
     @staticmethod
     def _rebin_data(times,signal,resolution,bin_duration: float = None, binning: np.array = None):
@@ -470,16 +488,17 @@ class GBM_LightCurve(LightCurve):
         return data[(data[:,1]>low_en)&(data[:,1]<high_en)]
             
     @staticmethod
-    def apply_redshift(times: np.array, signal: np.array, redshift: float):
+    def apply_redshift(times: np.array, energy: np.array, redshift: float):
         '''
         Apply redshift to data
         Args:
             times (np.array): time of photons and their energy
+            energy (np.array): energy of photon
             redshift (float): Cosmological redshift
         '''
         signal = signal * (1 + redshift)
-        times = times / (1 + redshift)
-        return times, signal
+        energy = energy / (1 + redshift)
+        return times, energy
 
 
 
