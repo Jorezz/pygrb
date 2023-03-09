@@ -1,6 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
+from functools import lru_cache
 
+@lru_cache(maxsize = 100)
 def parse_datetime_from_response_text(text, time_tag):
     '''
     Parse datetime from response text from heasarc
