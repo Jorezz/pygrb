@@ -13,14 +13,14 @@ def filter_missing_data_and_flares(times, signal):
     breaks = []
     avg_gap = np.median(breaks_data[:,1])
     for i in range(breaks_data.shape[0]-1):
-        if (breaks_data[i+1,0] - breaks_data[i,0]) > 3 * avg_gap:
-            breaks.append([breaks_data[i,0],breaks_data[i+1,0]])
+        if (breaks_data[i + 1, 0] - breaks_data[i,0]) > 3 * avg_gap:
+            breaks.append([breaks_data[i, 0],breaks_data[i + 1, 0]])
 
     # iterate through data and mark gaps with zeros
     for gap in breaks:
-        signal[(times>=gap[0])&(times<=gap[1])] = 0
+        signal[(times >= gap[0]) & (times <= gap[1])] = 0
     
-    return times[signal!=0], signal[signal!=0]
+    return times[signal != 0], signal[signal != 0]
 
 def process_time_window(sub_time,sub_counts,center_bin,threshold, plot = False):
     '''
@@ -35,7 +35,7 @@ def process_time_window(sub_time,sub_counts,center_bin,threshold, plot = False):
     if (event_flux/sigma) > threshold:
         event_time = sub_time[center_bin]
         chi_2 = Chi2_polyval(bkg_time,bkg_counts,param)
-        logging.info(f'{event_time=}, sigma = {round(event_flux/sigma,1)}, chi2 bkg = {round(chi_2,1)}')
+        logging.debug(f'{event_time=}, sigma = {round(event_flux/sigma,1)}, chi2 bkg = {round(chi_2,1)}')
         if plot:
             fig=plt.figure()
             plt.errorbar(bkg_time,bkg_counts,yerr=np.sqrt(bkg_counts*overpuasson),fmt='o',label='background')
@@ -43,9 +43,9 @@ def process_time_window(sub_time,sub_counts,center_bin,threshold, plot = False):
             plt.plot(sub_time,np.polyval(param,sub_time),label=f'chi2 bkg={round(chi_2,1)}')
             plt.legend()
             plt.show()
-        return (event_time,round(event_flux/sigma,1),round(chi_2,1))
+        return event_time,round(event_flux/sigma,1),round(chi_2,1)
     else:
-        return (None,None,None)
+        return None,None,None
 
 def find_event(times, times_err, signal, signal_err, 
                event_times: tuple = None, 

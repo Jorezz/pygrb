@@ -254,7 +254,7 @@ class SPI_ACS_LightCurve(LightCurve):
     def __init__(self,event_time: str,duration: int, loading_method: str='local',scale: str='utc',**kwargs):
         '''
         Args:
-            event_time (str): date and time of event
+            event_time (str): date and time of event in ISO 8601 format
             duration (int): duration of light curve in seconds
             loading_method (str, optional): 'local' or 'web'
             scale (str, optional): 'utc' or 'ijd'
