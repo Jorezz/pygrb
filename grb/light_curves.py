@@ -497,7 +497,7 @@ class GBM_LightCurve(LightCurve):
             energy (np.array): energy of photon
             redshift (float): Cosmological redshift
         '''
-        signal = signal * (1 + redshift)
+        times = times * (1 + redshift)
         energy = energy / (1 + redshift)
         return times, energy
 
