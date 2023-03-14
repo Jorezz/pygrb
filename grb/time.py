@@ -42,7 +42,7 @@ def get_ijd_from_utc(utc_time: str, loading_method = 'local') -> float:
     '''
     if loading_method == 'local':
         time = utc_time[:10]+'T'+utc_time[11:]
-        return Time(time, format='isot', scale='utc').tt.mjd - 54144
+        return Time(time, format='isot', scale='utc').tt.mjd - 51544
     elif loading_method == 'web':
         utc_time = utc_time[:10]+'+'+utc_time[11:13]+'%3A'+utc_time[14:16]+'%3A'+utc_time[17:19]
         url = f'https://heasarc.gsfc.nasa.gov/cgi-bin/Tools/xTime/xTime.pl?time_in_i={utc_time}&time_in_c=&time_in_d=&time_in_j=&time_in_m=&time_in_sf=&time_in_wf=&time_in_ii=&time_in_sl=&time_in_sni=&time_in_snu=&time_in_s=&time_in_h=&time_in_sz=&time_in_ss=&time_in_sn=&timesys_in=u&timesys_out=u&apply_clock_offset=yes'
